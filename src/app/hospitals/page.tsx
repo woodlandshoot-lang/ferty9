@@ -24,7 +24,7 @@ return(
 <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-sm">₹{h.p}</span>
 <span className="bg-green-50 text-green-700 px-3 py-1 rounded-lg text-sm">⭐{h.rating}</span>
 </div>
-<button className="w-full bg-purple-600 text-white py-2 rounded-xl text-sm">Book Appointment →</button>
+<Link href={'/hospitals/' + h.id} className="w-full bg-purple-600 text-white py-2 rounded-xl text-sm block text-center">Book Appointment →</Link>
 </div>
 ))}
 </div>
