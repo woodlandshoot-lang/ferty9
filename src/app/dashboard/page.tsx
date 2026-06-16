@@ -34,7 +34,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-purple-700">FERTY9</h1>
+        <h1 className="text-2xl font-bold text-purple-700">PREGA9 </h1>
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-600">{user?.email}</span>
           <button onClick={handleLogout} className="bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-medium">Logout</button>
@@ -43,7 +43,7 @@ export default function DashboardPage() {
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-gradient-to-r from-purple-600 to-purple-800 rounded-2xl p-6 text-white mb-6">
-          <h2 className="text-2xl font-bold">Welcome to FERTY9! 🎉</h2>
+          <h2 className="text-2xl font-bold">Welcome to PREGA9 ! 🎉</h2>
           <p className="text-purple-200 mt-1">Your fertility journey dashboard</p>
         </div>
 

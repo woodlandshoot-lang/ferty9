@@ -40,7 +40,7 @@ export default function HospitalsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow px-6 py-4 flex justify-between items-center sticky top-0 z-10">
-        <h1 className="text-2xl font-bold text-purple-700">FERTY9</h1>
+        <h1 className="text-2xl font-bold text-purple-700">PREGA9 </h1>
         <Link href="/dashboard" className="text-purple-600 text-sm">← Dashboard</Link>
       </header>
 

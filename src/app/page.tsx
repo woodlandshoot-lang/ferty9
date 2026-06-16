@@ -330,14 +330,14 @@ export default function Home() {
           </p>
           <div className="grid grid-cols-2 gap-2 text-xs text-white/30 mb-4">
             <span>📞 +91 80000 00000</span>
-            <span>✉️ hello@ferty9.in</span>
+            <span>✉️ hello@PREGA9 .in</span>
           </div>
           <div className="flex gap-4 text-xs text-white/20">
             <a href="#" className="hover:text-white">Privacy</a>
             <a href="#" className="hover:text-white">Terms</a>
             <a href="#" className="hover:text-white">About</a>
           </div>
-          <div className="mt-4 text-xs text-white/10">© 2025 FERTY9. All rights reserved.</div>
+          <div className="mt-4 text-xs text-white/10">© 2025 PREGA9 . All rights reserved.</div>
         </div>
       </footer>
 

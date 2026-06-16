@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const order = await razorpay.orders.create({
       amount: amount * 100, // paise లో (₹1 = 100 paise)
       currency: 'INR',
-      receipt: `ferty9_${hospitalId}_${Date.now()}`.slice(0, 40),
+      receipt: `PREGA9 _${hospitalId}_${Date.now()}`.slice(0, 40),
       notes: {
         planName,
         hospitalId,

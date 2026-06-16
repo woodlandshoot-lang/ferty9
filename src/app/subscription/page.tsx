@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -36,7 +36,7 @@ export default function SubscriptionPage() {
           key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
           amount: data.order.amount,
           currency: 'INR',
-          name: 'FERTY9',
+          name: 'PREGA9 ',
           description: plan.name,
           order_id: data.order.id,
           handler: (r: any) => {
@@ -58,7 +58,7 @@ export default function SubscriptionPage() {
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold text-center text-purple-700 mb-2">Hospital Subscription Plans</h1>
-        <p className="text-center text-gray-500 mb-10">FERTY9 లో మీ hospital list చేయండి — patients మీకు చేరుకుంటారు!</p>
+        <p className="text-center text-gray-500 mb-10">PREGA9 లో మీ hospital list చేయండి — patients మీకు చేరుకుంటారు!</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan) => (
             <div key={plan.id} className={`bg-white rounded-2xl border-2 ${plan.color} p-6 shadow-sm relative`}>

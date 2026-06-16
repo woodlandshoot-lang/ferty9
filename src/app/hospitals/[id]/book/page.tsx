@@ -64,7 +64,7 @@ export default function BookAppointmentPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-purple-700">FERTY9</h1>
+        <h1 className="text-2xl font-bold text-purple-700">PREGA9 </h1>
         <Link href={'/hospitals/' + id} className="text-purple-600 text-sm">Back</Link>
       </header>
       <div className="max-w-lg mx-auto p-4">
