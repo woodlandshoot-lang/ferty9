@@ -30,17 +30,30 @@ export default function RegisterPage() {
     }
     setLoading(true)
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
       options: { data: { full_name: formData.name, role: formData.role } }
     })
-    if (error) {
-      setError(error.message)
+
+    if (signUpError) {
+      setError(signUpError.message)
       setLoading(false)
-    } else {
-      router.push('/auth/login?registered=true')
+      return
     }
+
+    // ✅ profiles table లో free subscription create చేయండి
+    if (data.user) {
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        full_name: formData.name,
+        role: formData.role,
+        subscription_status: 'free'
+      })
+    }
+
+    router.push('/auth/login?registered=true')
   }
 
   return (
@@ -93,7 +106,14 @@ export default function RegisterPage() {
             {loading ? 'Registering...' : 'Register చేయండి'}
           </button>
         </form>
-        <p className="text-center text-gray-500 text-sm mt-6">
+
+        {/* ✅ Free Plan Badge */}
+        <div className="mt-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-center">
+          <p className="text-green-700 text-sm font-medium">🎉 Free Plan తో మొదలు పెట్టండి!</p>
+          <p className="text-green-600 text-xs mt-1">Hospitals browse చేయండి & appointments book చేయండి</p>
+        </div>
+
+        <p className="text-center text-gray-500 text-sm mt-4">
           Already account ఉందా?{' '}
           <Link href="/auth/login" className="text-purple-600 font-medium hover:underline">
             Login చేయండి
