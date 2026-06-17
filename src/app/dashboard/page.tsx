@@ -19,7 +19,8 @@ export default function DashboardPage() {
       if (!user) { router.push('/auth/login'); return }
       setUser(user)
       const role = user.user_metadata?.role || 'patient'
-      setUserRole(role)
+      
+      if (role === 'hospital') { router.push('/hospital-admin'); return }
       const { data: appts } = await supabase.from('appointments').select('*').order('created_at', { ascending: false })
       setAppointments(appts || [])
       const { data: hosp } = await supabase.from('hospitals').select('*')
