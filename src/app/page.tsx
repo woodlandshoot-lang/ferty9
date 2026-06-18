@@ -138,11 +138,11 @@ export default function Home() {
             <div className="text-6xl font-black text-transparent" style={{WebkitTextStroke:'1px rgba(14,165,233,0.2)',fontFamily:'Georgia'}}>
               &ldquo;
             </div>
-            <p className="text-lg text-white/50 italic -mt-4 mb-2">She held him close —</p>
+            <p className="text-lg text-white/50 italic -mt-4 mb-2">India's most trusted</p>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-none mb-2 bg-gradient-to-r from-white via-blue-200 to-rose-300 bg-clip-text text-transparent">
-              and the whole world
+              fertility hospital platform
             </h1>
-            <p className="text-lg text-white/50 italic mb-2">finally made sense.</p>
+            <p className="text-lg text-white/50 italic mb-2">Find, compare & book with full transparency.</p>
             <div className="text-6xl font-black text-transparent text-right" style={{WebkitTextStroke:'1px rgba(244,63,94,0.18)',fontFamily:'Georgia'}}>
               &rdquo;
             </div>
