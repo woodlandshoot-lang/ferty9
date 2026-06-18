@@ -12,12 +12,16 @@ export default function HospitalAdminPage() {
   const [tab, setTab] = useState('profile')
   const [user, setUser] = useState<any>(null)
 
-  const [profile, setProfile] = useState({ name: '', location: '', specialization: '', phone: '', description: '' })
+  const [profile, setProfile] = useState({
+    name: '', location: '', specialization: '', phone: '', description: '',
+    rating: '', success_rate: '', doctor_name: '', doctor_image: '', cover_image: ''
+  })
   const [videoUrl, setVideoUrl] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [story, setStory] = useState({ name: '', message: '', rating: 5, date: '' })
   const [stories, setStories] = useState<any[]>([])
+  const [bookings, setBookings] = useState<any[]>([])
 
   useEffect(() => {
     async function load() {
@@ -27,11 +31,9 @@ export default function HospitalAdminPage() {
       if (user.user_metadata?.role !== 'hospital') { router.push('/dashboard'); return }
       setUser(user)
 
-      // Phone లేదా user_id తో hospital fetch చేయాలి
       let { data } = await supabase.from('hospitals')
         .select('*').eq('user_id', user.id).single()
 
-      // user_id లేకపోతే phone తో try చేయాలి
       if (!data) {
         const res = await supabase.from('hospitals')
           .select('*').eq('phone', user.user_metadata?.phone).single()
@@ -40,13 +42,21 @@ export default function HospitalAdminPage() {
 
       if (data) {
         setHospital(data)
-        setProfile({ name: data.name || '', location: data.location || '', specialization: data.specialization || '', phone: data.phone || '', description: data.description || '' })
+        setProfile({
+          name: data.name || '', location: data.location || '', specialization: data.specialization || '',
+          phone: data.phone || '', description: data.description || '',
+          rating: data.rating || '', success_rate: data.success_rate || '',
+          doctor_name: data.doctor_name || '', doctor_image: data.doctor_image || '', cover_image: data.cover_image || ''
+        })
         setVideoUrl(data.video_url || '')
         setImages(data.images || [])
         setStories(data.success_stories || [])
+
+        const { data: bookingData } = await supabase.from('appointments')
+          .select('*').eq('hospital_id', data.id).order('created_at', { ascending: false })
+        setBookings(bookingData || [])
       } else {
-        // Hospital లేకపోతే user info తో pre-fill చేయాలి
-        setProfile(p => ({ ...p, 
+        setProfile(p => ({ ...p,
           name: user.user_metadata?.full_name || '',
           phone: user.user_metadata?.phone || ''
         }))
@@ -59,13 +69,17 @@ export default function HospitalAdminPage() {
   async function saveProfile() {
     setSaving(true)
     const supabase = createClient()
+    const payload = {
+      ...profile,
+      rating: profile.rating ? Number(profile.rating) : 0,
+      success_rate: profile.success_rate ? Number(profile.success_rate) : 0,
+    }
     if (hospital) {
-      await supabase.from('hospitals').update(profile).eq('id', hospital.id)
+      await supabase.from('hospitals').update(payload).eq('id', hospital.id)
       setMsg('Profile saved! ✅')
     } else {
-      // కొత్త hospital create చేయాలి
       const { data } = await supabase.from('hospitals')
-        .insert({ ...profile, user_id: user.id })
+        .insert({ ...payload, user_id: user.id })
         .select().single()
       if (data) {
         setHospital(data)
@@ -150,10 +164,10 @@ export default function HospitalAdminPage() {
         )}
 
         <div className="flex gap-2 mb-4 overflow-x-auto">
-          {['profile', 'photos', 'video', 'stories'].map(t => (
+          {['profile', 'photos', 'video', 'stories', 'bookings'].map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-full text-sm capitalize whitespace-nowrap ${tab === t ? 'bg-purple-600 text-white' : 'bg-white border'}`}>
-              {t === 'photos' ? '📸 Photos' : t === 'video' ? '🎥 Video' : t === 'stories' ? '⭐ Stories' : '👤 Profile'}
+              {t === 'photos' ? '📸 Photos' : t === 'video' ? '🎥 Video' : t === 'stories' ? '⭐ Stories' : t === 'bookings' ? `📅 Bookings${bookings.length ? ' (' + bookings.length + ')' : ''}` : '👤 Profile'}
             </button>
           ))}
         </div>
@@ -168,6 +182,38 @@ export default function HospitalAdminPage() {
                   className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
               </div>
             ))}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rating (0–5)</label>
+                <input type="number" step="0.1" min="0" max="5" value={profile.rating}
+                  onChange={e => setProfile({ ...profile, rating: e.target.value })}
+                  placeholder="4.5" className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Success Rate (%)</label>
+                <input type="number" min="0" max="100" value={profile.success_rate}
+                  onChange={e => setProfile({ ...profile, success_rate: e.target.value })}
+                  placeholder="72" className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Doctor Name</label>
+              <input value={profile.doctor_name} onChange={e => setProfile({ ...profile, doctor_name: e.target.value })}
+                placeholder="Dr. Ramesh Kumar" className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Doctor Image URL</label>
+              <input value={profile.doctor_image} onChange={e => setProfile({ ...profile, doctor_image: e.target.value })}
+                placeholder="https://...doctor.jpg" className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cover Image URL (hospital photo)</label>
+              <input value={profile.cover_image} onChange={e => setProfile({ ...profile, cover_image: e.target.value })}
+                placeholder="https://...hospital.jpg" className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea value={profile.description} onChange={e => setProfile({ ...profile, description: e.target.value })}
@@ -243,6 +289,35 @@ export default function HospitalAdminPage() {
                     <p>{'⭐'.repeat(s.rating)}</p>
                   </div>
                   <button onClick={() => removeStory(i)} className="text-red-500 text-sm">Delete</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {tab === 'bookings' && (
+          <div className="bg-white rounded-2xl shadow p-6 space-y-4">
+            <h3 className="font-bold text-lg">📅 Patient Bookings</h3>
+            {bookings.length === 0 && (
+              <p className="text-gray-400 text-center py-6">ఇంకా bookings రాలేదు.</p>
+            )}
+            <div className="space-y-3">
+              {bookings.map((b) => (
+                <div key={b.id} className="border rounded-xl p-4 bg-gray-50">
+                  <div className="flex justify-between items-start mb-2">
+                    <p className="font-semibold text-gray-800">{b.patient_name}</p>
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      b.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                      b.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>{b.status}</span>
+                  </div>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p>📞 {b.phone}</p>
+                    <p>🗓️ {b.appointment_date}</p>
+                    <p>💉 {b.treatment_type}</p>
+                    {b.notes && <p>📝 {b.notes}</p>}
+                  </div>
                 </div>
               ))}
             </div>

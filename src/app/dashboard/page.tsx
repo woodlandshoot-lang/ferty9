@@ -19,7 +19,8 @@ export default function DashboardPage() {
       if (!user) { router.push('/auth/login'); return }
       setUser(user)
       const role = user.user_metadata?.role || 'patient'
-      
+      setUserRole(role)
+
       if (role === 'hospital') { router.push('/hospital-admin'); return }
       const { data: appts } = await supabase.from('appointments').select('*').order('created_at', { ascending: false })
       setAppointments(appts || [])
@@ -72,7 +73,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ✅ Hospitals List */}
+        {/* ✅ Hospitals — Rich Cards */}
         <div className="bg-white rounded-2xl shadow p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold">🏥 Hospitals / Clinics</h3>
@@ -81,17 +82,65 @@ export default function DashboardPage() {
           {hospitals.length === 0 ? (
             <p className="text-gray-400 text-center py-4">Hospitals లేవు</p>
           ) : (
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {hospitals.map((h) => (
-                <div key={h.id} className="border rounded-xl p-4 flex justify-between items-center hover:bg-purple-50 transition">
-                  <div>
-                    <p className="font-semibold text-gray-800">{h.name}</p>
-                    <p className="text-sm text-gray-500">{h.location} · {h.specialization}</p>
+                <Link
+                  key={h.id}
+                  href={`/hospitals/${h.id}/book`}
+                  className="block border rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all bg-white"
+                >
+                  {/* Cover */}
+                  <div className="h-28 bg-gradient-to-br from-purple-500 to-purple-800 relative">
+                    {h.cover_image && (
+                      <img src={h.cover_image} alt="" className="w-full h-full object-cover" />
+                    )}
+                    {Number(h.rating) > 0 && (
+                      <span className="absolute top-2 right-2 bg-white/90 backdrop-blur text-gray-800 text-xs font-bold px-2 py-1 rounded-lg shadow">
+                        ⭐ {h.rating}
+                      </span>
+                    )}
                   </div>
-                  <Link href={`/hospitals/${h.id}`} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
-                    Book చేయండి
-                  </Link>
-                </div>
+
+                  {/* Body */}
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      {/* Doctor avatar */}
+                      <div className="-mt-10 w-14 h-14 rounded-xl border-2 border-white shadow bg-purple-100 flex items-center justify-center overflow-hidden shrink-0">
+                        {h.doctor_image ? (
+                          <img src={h.doctor_image} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-purple-700 font-bold text-lg">{(h.name || '?')[0]}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-800 truncate">{h.name}</p>
+                        <p className="text-xs text-gray-500 truncate">📍 {h.location || '—'}</p>
+                      </div>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex gap-2 flex-wrap mt-3">
+                      {h.specialization && (
+                        <span className="text-xs bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-md font-medium">
+                          {h.specialization}
+                        </span>
+                      )}
+                      {Number(h.success_rate) > 0 && (
+                        <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-md font-medium">
+                          {h.success_rate}% success
+                        </span>
+                      )}
+                    </div>
+
+                    {h.doctor_name && (
+                      <p className="text-sm text-gray-600 mt-2">👨‍⚕️ {h.doctor_name}</p>
+                    )}
+
+                    <div className="mt-3 bg-purple-600 text-white text-center py-2 rounded-lg text-sm font-semibold">
+                      Book చేయండి
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
           )}
