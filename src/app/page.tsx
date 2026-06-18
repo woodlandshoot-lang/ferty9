@@ -89,7 +89,7 @@ export default function Home() {
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-black text-sm font-bold">♥</div>
           <span className="font-bold text-xl tracking-tight flex items-center">
-            FERTY<span className="inline-flex items-center justify-center w-5 h-5 bg-white text-black rounded text-xs font-black ml-0.5">9</span>
+            PREGA <span className="inline-flex items-center justify-center w-5 h-5 bg-white text-black rounded text-xs font-black ml-0.5">9</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -322,7 +322,7 @@ export default function Home() {
           <div className="flex items-center gap-2 mb-4">
             <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-black text-xs font-bold">♥</div>
             <span className="font-black text-lg text-white tracking-tight flex items-center">
-              FERTY<span className="inline-flex items-center justify-center w-4 h-4 bg-white text-black rounded text-xs font-black ml-0.5">9</span>
+              PREGA <span className="inline-flex items-center justify-center w-4 h-4 bg-white text-black rounded text-xs font-black ml-0.5">9</span>
             </span>
           </div>
           <p className="text-sm text-white/30 mb-4 leading-relaxed">
