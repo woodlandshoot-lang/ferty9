@@ -10,6 +10,7 @@ export default function HospitalAdminPage() {
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   const [tab, setTab] = useState('profile')
+  const [user, setUser] = useState<any>(null)
 
   const [profile, setProfile] = useState({ name: '', location: '', specialization: '', phone: '', description: '' })
   const [videoUrl, setVideoUrl] = useState('')
@@ -24,16 +25,31 @@ export default function HospitalAdminPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
       if (user.user_metadata?.role !== 'hospital') { router.push('/dashboard'); return }
+      setUser(user)
 
-      const { data } = await supabase.from('hospitals')
-        .select('*').eq('phone', user.user_metadata?.phone).single()
+      // Phone లేదా user_id తో hospital fetch చేయాలి
+      let { data } = await supabase.from('hospitals')
+        .select('*').eq('user_id', user.id).single()
+
+      // user_id లేకపోతే phone తో try చేయాలి
+      if (!data) {
+        const res = await supabase.from('hospitals')
+          .select('*').eq('phone', user.user_metadata?.phone).single()
+        data = res.data
+      }
 
       if (data) {
         setHospital(data)
-        setProfile({ name: data.name, location: data.location, specialization: data.specialization, phone: data.phone, description: data.description || '' })
+        setProfile({ name: data.name || '', location: data.location || '', specialization: data.specialization || '', phone: data.phone || '', description: data.description || '' })
         setVideoUrl(data.video_url || '')
         setImages(data.images || [])
         setStories(data.success_stories || [])
+      } else {
+        // Hospital లేకపోతే user info తో pre-fill చేయాలి
+        setProfile(p => ({ ...p, 
+          name: user.user_metadata?.full_name || '',
+          phone: user.user_metadata?.phone || ''
+        }))
       }
       setLoading(false)
     }
@@ -43,13 +59,25 @@ export default function HospitalAdminPage() {
   async function saveProfile() {
     setSaving(true)
     const supabase = createClient()
-    await supabase.from('hospitals').update(profile).eq('id', hospital.id)
-    setMsg('Profile saved! ✅')
+    if (hospital) {
+      await supabase.from('hospitals').update(profile).eq('id', hospital.id)
+      setMsg('Profile saved! ✅')
+    } else {
+      // కొత్త hospital create చేయాలి
+      const { data } = await supabase.from('hospitals')
+        .insert({ ...profile, user_id: user.id })
+        .select().single()
+      if (data) {
+        setHospital(data)
+        setMsg('Hospital profile created! ✅')
+      }
+    }
     setSaving(false)
     setTimeout(() => setMsg(''), 3000)
   }
 
   async function saveVideo() {
+    if (!hospital) { setMsg('ముందు profile save చేయండి!'); return }
     setSaving(true)
     const supabase = createClient()
     await supabase.from('hospitals').update({ video_url: videoUrl }).eq('id', hospital.id)
@@ -59,6 +87,7 @@ export default function HospitalAdminPage() {
   }
 
   async function addImage() {
+    if (!hospital) { setMsg('ముందు profile save చేయండి!'); return }
     if (!imageUrl) return
     const newImages = [...images, imageUrl]
     const supabase = createClient()
@@ -77,6 +106,7 @@ export default function HospitalAdminPage() {
   }
 
   async function addStory() {
+    if (!hospital) { setMsg('ముందు profile save చేయండి!'); return }
     if (!story.name || !story.message) return
     const newStories = [...stories, { ...story, date: new Date().toLocaleDateString() }]
     const supabase = createClient()
@@ -99,8 +129,8 @@ export default function HospitalAdminPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-purple-700">PREGA9 — Hospital Admin</h1>
-        <button onClick={() => { const s = createClient(); s.auth.signOut(); router.push('/auth/login') }}
+        <h1 className="text-xl font-bold text-purple-700">PREGA9 — Hospital Admin</h1>
+        <button onClick={async () => { const s = createClient(); await s.auth.signOut(); router.push('/auth/login') }}
           className="bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm">Logout</button>
       </header>
 
@@ -109,11 +139,16 @@ export default function HospitalAdminPage() {
 
         {!hospital && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
-            <p className="text-yellow-700">⚠️ మీ hospital profile లేదు. Admin మీకు account create చేయాలి.</p>
+            <p className="text-yellow-700 text-sm">⚠️ Profile details fill చేసి Save చేయండి — hospital create అవుతుంది!</p>
           </div>
         )}
 
-        {/* Tabs */}
+        {hospital && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4">
+            <p className="text-green-700 text-sm">✅ {hospital.name} — Profile active!</p>
+          </div>
+        )}
+
         <div className="flex gap-2 mb-4 overflow-x-auto">
           {['profile', 'photos', 'video', 'stories'].map(t => (
             <button key={t} onClick={() => setTab(t)}
@@ -123,7 +158,6 @@ export default function HospitalAdminPage() {
           ))}
         </div>
 
-        {/* Profile */}
         {tab === 'profile' && (
           <div className="bg-white rounded-2xl shadow p-6 space-y-4">
             <h3 className="font-bold text-lg">👤 Hospital Profile</h3>
@@ -139,14 +173,13 @@ export default function HospitalAdminPage() {
               <textarea value={profile.description} onChange={e => setProfile({ ...profile, description: e.target.value })}
                 rows={3} className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
             </div>
-            <button onClick={saveProfile} disabled={saving || !hospital}
+            <button onClick={saveProfile} disabled={saving}
               className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50">
-              {saving ? 'Saving...' : 'Save Profile'}
+              {saving ? 'Saving...' : hospital ? 'Update Profile' : 'Create Hospital Profile'}
             </button>
           </div>
         )}
 
-        {/* Photos */}
         {tab === 'photos' && (
           <div className="bg-white rounded-2xl shadow p-6 space-y-4">
             <h3 className="font-bold text-lg">📸 Hospital Photos</h3>
@@ -154,8 +187,7 @@ export default function HospitalAdminPage() {
               <input value={imageUrl} onChange={e => setImageUrl(e.target.value)}
                 placeholder="Image URL paste చేయండి"
                 className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
-              <button onClick={addImage} disabled={!hospital}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg disabled:opacity-50">Add</button>
+              <button onClick={addImage} className="bg-purple-600 text-white px-4 py-2 rounded-lg">Add</button>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {images.map((img, i) => (
@@ -170,14 +202,13 @@ export default function HospitalAdminPage() {
           </div>
         )}
 
-        {/* Video */}
         {tab === 'video' && (
           <div className="bg-white rounded-2xl shadow p-6 space-y-4">
             <h3 className="font-bold text-lg">🎥 Hospital Video</h3>
             <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)}
-              placeholder="YouTube URL (e.g. https://www.youtube.com/watch?v=xxxxx)"
+              placeholder="YouTube URL (https://www.youtube.com/watch?v=xxxxx)"
               className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" />
-            <button onClick={saveVideo} disabled={saving || !hospital}
+            <button onClick={saveVideo} disabled={saving}
               className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Video'}
             </button>
@@ -190,10 +221,9 @@ export default function HospitalAdminPage() {
           </div>
         )}
 
-        {/* Stories */}
         {tab === 'stories' && (
           <div className="bg-white rounded-2xl shadow p-6 space-y-4">
-            <h3 className="font-bold text-lg">⭐ Success Stories Add చేయండి</h3>
+            <h3 className="font-bold text-lg">⭐ Success Stories</h3>
             <input value={story.name} onChange={e => setStory({ ...story, name: e.target.value })}
               placeholder="Patient పేరు" className="w-full border rounded-lg px-4 py-2" />
             <textarea value={story.message} onChange={e => setStory({ ...story, message: e.target.value })}
@@ -202,10 +232,8 @@ export default function HospitalAdminPage() {
               className="w-full border rounded-lg px-4 py-2">
               {[5,4,3].map(r => <option key={r} value={r}>{r} ⭐</option>)}
             </select>
-            <button onClick={addStory} disabled={!hospital}
-              className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50">
-              Add Story
-            </button>
+            <button onClick={addStory}
+              className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold">Add Story</button>
             <div className="space-y-3">
               {stories.map((s, i) => (
                 <div key={i} className="border rounded-xl p-3 bg-purple-50 flex justify-between">
