@@ -154,6 +154,8 @@ export default function Home() {
             We help you find the right hospital to get there.
           </p>
 
+          <a href="/match" className="inline-block mb-6 bg-white text-black font-bold px-5 py-3 rounded-2xl text-sm shadow-lg hover:scale-105 transition-transform">🎯 30 సెకన్లలో మీ best hospital కనుక్కోండి →</a>
+
           {/* Search */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-3 mb-4 flex gap-2">
             <input
